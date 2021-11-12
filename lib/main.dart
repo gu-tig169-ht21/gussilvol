@@ -4,7 +4,7 @@ import 'package:flutter/rendering.dart';
 final List<String> _input = <String>["Städa", "Cykla", "Springa"];
 final _textEdit = TextEditingController();
 final _klar = <String>[];
-
+// SNo inte MIn kOd din liLLe JÄvEl
 void main() {
   runApp(const MaterialApp(
     title: "To-Do",
