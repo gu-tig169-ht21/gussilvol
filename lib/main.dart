@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-final List<String> _input = <String>["Städa", "Cykla", "Springa"];
+final List<String> _input = <String>[];
 final _textEdit = TextEditingController();
 final _klar = <String>[];
+
+String filter = "All";
+
 // SNo inte MIn kOd din liLLe JÄvEl
 void main() {
   runApp(const MaterialApp(
     title: "To-Do",
     home: Hem(),
+    debugShowCheckedModeBanner: false,
   ));
 }
 
@@ -19,23 +23,40 @@ class Hem extends StatefulWidget {
 }
 
 class _HemState extends State<Hem> {
+  final _filterDD = ["All", "Done", "Undone"];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         actions: [
-          IconButton(
+          DropdownButton<String>(
+            items: _filterDD.map((String dropDownStringItem) {
+              return DropdownMenuItem<String>(
+                value: dropDownStringItem,
+                child: Text(dropDownStringItem),
+              );
+            }).toList(),
+            onChanged: (String? newValueSelected) {
+              setState(() {
+                filter = newValueSelected!;
+              });
+            },
+            value: filter,
+          )
+
+          /*IconButton(
               icon: const Icon(Icons.more_vert),
               onPressed: () {
-                /*Navigator.push(
+                /*Navigator.push( här ska det ligga en dropdpwn meny
                   context,
                   MaterialPageRoute(builder: (context) => const GorInput()),
                 ).then((value) => setState(() {}));*/
-              })
+              })*/
         ],
         title: const Text("Att göra lista"),
       ),
-      body: gorLista(),
+      body: _filter(filter),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
@@ -47,12 +68,12 @@ class _HemState extends State<Hem> {
     );
   }
 
-  Widget gorLista() {
+  Widget gorLista(List<String> filtrera) {
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemBuilder: (BuildContext _context, int n) {
-          if (n < _input.length) {
-            return _gorRad(_input[n]);
+          if (n < filtrera.length) {
+            return _gorRad(filtrera[n]);
           } else {
             return const Divider(
               color: Colors.white,
@@ -91,6 +112,35 @@ class _HemState extends State<Hem> {
         icon: const Icon(Icons.delete_outline),
       ),
     ));
+  }
+
+  Widget _filter(String val) {
+    List<String> undone = <String>[];
+    switch (val) {
+      case "All":
+        {
+          return gorLista(_input);
+        }
+
+      case "Done":
+        {
+          return gorLista(_klar);
+        }
+
+      case "Undone":
+        {
+          for (int i = 0; i < _input.length; i++) {
+            if (!_klar.contains(_input[i])) {
+              undone.add(_input[i]);
+            }
+          }
+          return gorLista(undone);
+        }
+      default:
+        {
+          return gorLista(_input);
+        }
+    }
   }
 }
 
