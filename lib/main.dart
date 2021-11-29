@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:http/http.dart' as http;
+import 'http.dart';
 
-final List<String> _input = <String>[];
+List<todoList> _input = <todoList>[];
 final _textEdit = TextEditingController();
 final _klar = <String>[];
 
@@ -23,6 +25,15 @@ class Hem extends StatefulWidget {
 }
 
 class _HemState extends State<Hem> {
+  late Future<List<todoList>> futureList; //kanske ta bort
+
+  @override
+  @mustCallSuper
+  void initState() {
+    super.initState();
+    futureList = fetchList();
+  } //kanske ta bort
+
   final _filterDD = ["All", "Done", "Undone"];
 
   @override
@@ -56,7 +67,17 @@ class _HemState extends State<Hem> {
         ],
         title: const Text("Att göra lista"),
       ),
-      body: _filter(filter),
+      body: FutureBuilder<List<todoList>>(
+        future: futureList,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            return _filter(filter);
+          } else if (snapshot.hasError) {
+            return Text('${snapshot.error}');
+          }
+          return const CircularProgressIndicator();
+        },
+      ),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
           onPressed: () {
@@ -68,7 +89,7 @@ class _HemState extends State<Hem> {
     );
   }
 
-  Widget gorLista(List<String> filtrera) {
+  Widget gorLista(List<todoList> filtrera) {
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemBuilder: (BuildContext _context, int n) {
@@ -82,14 +103,14 @@ class _HemState extends State<Hem> {
         });
   }
 
-  Widget _gorRad(String text) {
-    final _fardig = _klar.contains(text);
+  Widget _gorRad(todoList text) {
+    final _fardig = text.done;
 
     _input.contains(text) ? null : _input.add(text);
     return Card(
         child: ListTile(
       title: Text(
-        text,
+        text.title,
         style: TextStyle(
           decoration: _fardig ? TextDecoration.lineThrough : null,
         ),
@@ -99,14 +120,24 @@ class _HemState extends State<Hem> {
         color: _fardig ? Colors.pink : null,
       ),
       onTap: () {
-        setState(() {
-          _fardig ? _klar.remove(text) : _klar.add(text);
-        });
+        int index = _input.indexWhere((item) => item.id == text.id);
+        if (_fardig) {
+          updateList(text.title, false, text.id);
+          setState(() {
+            _input[index].done = false;
+          });
+        } else {
+          updateList(text.title, true, text.id);
+          setState(() {
+            _input[index].done = true;
+          });
+        }
       },
       trailing: IconButton(
         onPressed: () {
+          deleteList(text.id);
           setState(() {
-            _input.remove(text);
+            _input.removeWhere((element) => element.id == text.id);
           });
         },
         icon: const Icon(Icons.delete_outline),
@@ -115,7 +146,6 @@ class _HemState extends State<Hem> {
   }
 
   Widget _filter(String val) {
-    List<String> undone = <String>[];
     switch (val) {
       case "All":
         {
@@ -124,17 +154,12 @@ class _HemState extends State<Hem> {
 
       case "Done":
         {
-          return gorLista(_klar);
+          return gorLista(_input.where((todo) => todo.done == true).toList());
         }
 
       case "Undone":
         {
-          for (int i = 0; i < _input.length; i++) {
-            if (!_klar.contains(_input[i])) {
-              undone.add(_input[i]);
-            }
-          }
-          return gorLista(undone);
+          return gorLista(_input.where((todo) => todo.done == false).toList());
         }
       default:
         {
@@ -165,10 +190,14 @@ class _GorInputState extends State<GorInput> {
               height: 18,
             ),
             OutlinedButton(
-                onPressed: () {
+                onPressed: () async {
                   setState(() {
-                    _input.add(_textEdit.text);
+                    sendList(_textEdit.text, false);
+                    fetchList();
+                    _input = List.from(getList);
                     _textEdit.clear();
+                    // Navigator.pop(
+                    //  context, todoList(_textEdit, false, ""))
                   });
                 },
                 child: const Text("Add")),
