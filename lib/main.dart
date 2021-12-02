@@ -1,21 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:http/http.dart' as http;
 import 'http.dart';
+import 'andrasidan.dart';
+import 'theme.dart';
 
-List<todoList> _input = <todoList>[];
-final _textEdit = TextEditingController();
-final _klar = <String>[];
+List<TodoList> input = <TodoList>[];
+final textEdit = TextEditingController();
 
 String filter = "All";
 
 // SNo inte MIn kOd din liLLe JÄvEl
 void main() {
-  runApp(const MaterialApp(
+  runApp(MaterialApp(
+    //borde va const
     title: "To-Do",
-    home: Hem(),
+    home: const Hem(),
     debugShowCheckedModeBanner: false,
+    theme: MasterTheme().darkTheme,
   ));
+}
+
+class _ApiInput {
+  Future<List<TodoList>> inputFromApi() async {
+    await APIresponse().fetchList();
+    input = List.from(getList);
+    return input;
+  }
 }
 
 class Hem extends StatefulWidget {
@@ -25,14 +35,14 @@ class Hem extends StatefulWidget {
 }
 
 class _HemState extends State<Hem> {
-  late Future<List<todoList>> futureList; //kanske ta bort
+  Future<List<TodoList>>? futureList;
 
   @override
   @mustCallSuper
   void initState() {
+    futureList = _ApiInput().inputFromApi();
     super.initState();
-    futureList = fetchList();
-  } //kanske ta bort
+  }
 
   final _filterDD = ["All", "Done", "Undone"];
 
@@ -55,20 +65,10 @@ class _HemState extends State<Hem> {
             },
             value: filter,
           )
-
-          /*IconButton(
-              icon: const Icon(Icons.more_vert),
-              onPressed: () {
-                /*Navigator.push( här ska det ligga en dropdpwn meny
-                  context,
-                  MaterialPageRoute(builder: (context) => const GorInput()),
-                ).then((value) => setState(() {}));*/
-              })*/
         ],
         title: const Text("Att göra lista"),
       ),
-      body: FutureBuilder<List<todoList>>(
-        future: futureList,
+      body: FutureBuilder(
         builder: (context, snapshot) {
           if (snapshot.hasData) {
             return _filter(filter);
@@ -77,6 +77,7 @@ class _HemState extends State<Hem> {
           }
           return const CircularProgressIndicator();
         },
+        future: futureList,
       ),
       floatingActionButton: FloatingActionButton(
           child: const Icon(Icons.add),
@@ -84,12 +85,18 @@ class _HemState extends State<Hem> {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const GorInput()),
-            ).then((value) => setState(() {}));
+            ).then(onBackToMain);
           }),
     );
   }
 
-  Widget gorLista(List<todoList> filtrera) {
+  Future? onBackToMain(dynamic value) {
+    setState(() {
+      futureList = _ApiInput().inputFromApi();
+    });
+  }
+
+  Widget gorLista(List<TodoList> filtrera) {
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
         itemBuilder: (BuildContext _context, int n) {
@@ -103,41 +110,41 @@ class _HemState extends State<Hem> {
         });
   }
 
-  Widget _gorRad(todoList text) {
-    final _fardig = text.done;
+  Widget _gorRad(TodoList text) {
+    final _fardig = text.getDone;
 
-    _input.contains(text) ? null : _input.add(text);
+    //_input.contains(text) ? null : _input.add(text);
     return Card(
         child: ListTile(
       title: Text(
-        text.title,
+        text.getTitle,
         style: TextStyle(
           decoration: _fardig ? TextDecoration.lineThrough : null,
         ),
       ),
       leading: Icon(
         _fardig ? Icons.check_box : Icons.check_box_outline_blank_outlined,
-        color: _fardig ? Colors.pink : null,
+        color: _fardig ? Colors.purple : null,
       ),
       onTap: () {
-        int index = _input.indexWhere((item) => item.id == text.id);
+        int index = input.indexWhere((item) => item.getId == text.getId);
         if (_fardig) {
-          updateList(text.title, false, text.id);
+          APIresponse().updateList(text.getTitle, false, text.getId);
           setState(() {
-            _input[index].done = false;
+            input[index].setDone = false;
           });
         } else {
-          updateList(text.title, true, text.id);
+          APIresponse().updateList(text.getTitle, true, text.getId);
           setState(() {
-            _input[index].done = true;
+            input[index].setDone = true;
           });
         }
       },
       trailing: IconButton(
         onPressed: () {
-          deleteList(text.id);
+          APIresponse().deleteList(text.getId);
           setState(() {
-            _input.removeWhere((element) => element.id == text.id);
+            input.removeWhere((item) => item.getId == text.getId);
           });
         },
         icon: const Icon(Icons.delete_outline),
@@ -149,59 +156,22 @@ class _HemState extends State<Hem> {
     switch (val) {
       case "All":
         {
-          return gorLista(_input);
+          return gorLista(input);
         }
 
       case "Done":
         {
-          return gorLista(_input.where((todo) => todo.done == true).toList());
+          return gorLista(input.where((todo) => todo.done == true).toList());
         }
 
       case "Undone":
         {
-          return gorLista(_input.where((todo) => todo.done == false).toList());
+          return gorLista(input.where((todo) => todo.done == false).toList());
         }
       default:
         {
-          return gorLista(_input);
+          return gorLista(input);
         }
     }
-  }
-}
-
-class GorInput extends StatefulWidget {
-  const GorInput({Key? key}) : super(key: key);
-  @override
-  _GorInputState createState() => _GorInputState();
-}
-
-class _GorInputState extends State<GorInput> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: const Text("Lägg till på din att-göra lista"),
-        ),
-        body: Center(
-            child: Column(
-          children: <Widget>[
-            TextField(controller: _textEdit),
-            const Divider(
-              height: 18,
-            ),
-            OutlinedButton(
-                onPressed: () async {
-                  setState(() {
-                    sendList(_textEdit.text, false);
-                    fetchList();
-                    _input = List.from(getList);
-                    _textEdit.clear();
-                    // Navigator.pop(
-                    //  context, todoList(_textEdit, false, ""))
-                  });
-                },
-                child: const Text("Add")),
-          ],
-        )));
   }
 }
