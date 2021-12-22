@@ -9,6 +9,7 @@ class GorInput extends StatefulWidget {
 }
 
 class _GorInputState extends State<GorInput> {
+  final textEdit = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,14 +24,12 @@ class _GorInputState extends State<GorInput> {
               height: 18,
             ),
             OutlinedButton(
-                onPressed: () async {
-                  setState(() {
-                    APIresponse().sendList(textEdit.text, false);
-                    APIresponse().fetchList();
-                    input = List.from(getList);
+                onPressed: () {
+                  setState(() async {
+                    await APIresponse().sendList(textEdit.text, false);
+                    await APIresponse().fetchList();
+                    HemState.todoList = List.from(getList);
                     textEdit.clear();
-                    // Navigator.pop(
-                    //  context, todoList(_textEdit, false, ""))
                   });
                 },
                 child: const Text("Add")),
