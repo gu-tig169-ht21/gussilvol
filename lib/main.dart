@@ -126,22 +126,22 @@ class HemState extends State<Hem> {
         int index = todoList.indexWhere((item) => item.getId == text.getId);
         if (_fardig) {
           await APIresponse().updateList(text.getTitle, false, text.getId);
-          setState(() {
-            todoList[index].setDone = false;
-          });
+          todoList[index].setDone = false;
+          todoList = await APIresponse().fetchList();
+          setState(() {});
         } else {
           await APIresponse().updateList(text.getTitle, true, text.getId);
-          setState(() {
-            todoList[index].setDone = true;
-          });
+          todoList[index].setDone = true;
+          todoList = await APIresponse().fetchList();
+          setState(() {});
         }
       },
       trailing: IconButton(
         onPressed: () async {
           await APIresponse().deleteList(text.getId);
-          setState(() {
-            todoList.removeWhere((item) => item.getId == text.getId);
-          });
+          todoList.removeWhere((item) => item.getId == text.getId);
+          todoList = await APIresponse().fetchList();
+          setState(() {});
         },
         icon: const Icon(Icons.delete_outline),
       ),

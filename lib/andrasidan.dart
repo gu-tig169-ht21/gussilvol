@@ -24,13 +24,12 @@ class _GorInputState extends State<GorInput> {
               height: 18,
             ),
             OutlinedButton(
-                onPressed: () {
-                  setState(() async {
-                    await APIresponse().sendList(textEdit.text, false);
-                    await APIresponse().fetchList();
-                    HemState.todoList = List.from(getList);
-                    textEdit.clear();
-                  });
+                onPressed: () async {
+                  await APIresponse().sendList(textEdit.text, false);
+                  await APIresponse().fetchList();
+                  HemState.todoList = List.from(getList);
+                  textEdit.clear();
+                  setState(() {});
                 },
                 child: const Text("Add")),
           ],
