@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'http.dart';
-import 'main.dart';
 
 class GorInput extends StatefulWidget {
   const GorInput({Key? key}) : super(key: key);
@@ -26,10 +25,7 @@ class _GorInputState extends State<GorInput> {
             OutlinedButton(
                 onPressed: () async {
                   await APIresponse().sendList(textEdit.text, false);
-                  await APIresponse().fetchList();
-                  HemState.todoList = List.from(getList);
                   textEdit.clear();
-                  setState(() {});
                 },
                 child: const Text("Add")),
           ],

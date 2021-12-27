@@ -14,14 +14,6 @@ void main() {
   ));
 }
 
-class _ApiInput {
-  Future<List<TodoList>> inputFromApi() async {
-    await APIresponse().fetchList();
-    HemState.todoList = List.from(getList);
-    return HemState.todoList;
-  }
-}
-
 class Hem extends StatefulWidget {
   const Hem({Key? key}) : super(key: key);
   @override
@@ -30,12 +22,18 @@ class Hem extends StatefulWidget {
 
 class HemState extends State<Hem> {
   Future<List<TodoList>>? futureList;
-  static List<TodoList> todoList = <TodoList>[];
+  List<TodoList> todoList = <TodoList>[];
+
+  Future<List<TodoList>> inputFromApi() async {
+    await APIresponse().fetchList();
+    todoList = List.from(getList);
+    return todoList;
+  }
 
   @override
   @mustCallSuper
   void initState() {
-    futureList = _ApiInput().inputFromApi();
+    futureList = inputFromApi();
     super.initState();
   }
 
@@ -87,7 +85,7 @@ class HemState extends State<Hem> {
 
   Future? onBackToMain(dynamic value) {
     setState(() {
-      futureList = _ApiInput().inputFromApi();
+      futureList = inputFromApi();
     });
   }
 
