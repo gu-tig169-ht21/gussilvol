@@ -25,8 +25,7 @@ class HemState extends State<Hem> {
   List<TodoList> todoList = <TodoList>[];
 
   Future<List<TodoList>> inputFromApi() async {
-    await APIresponse().fetchList();
-    todoList = List.from(getList);
+    todoList = await APIresponse().fetchList();
     return todoList;
   }
 

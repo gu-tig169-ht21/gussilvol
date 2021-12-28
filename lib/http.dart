@@ -1,8 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-List<TodoList> getList = <TodoList>[];
-
 class TodoList {
   String id, title;
   bool done;
@@ -49,10 +47,9 @@ class APIresponse {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       var responsOBJson = jsonDecode(response.body) as List;
-      getList = responsOBJson
+      return responsOBJson
           .map((responsJson) => TodoList.fromJson(responsJson))
           .toList();
-      return getList;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -68,10 +65,9 @@ class APIresponse {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       var responsOBJson = jsonDecode(response.body) as List;
-      getList = responsOBJson
+      return responsOBJson
           .map((responsJson) => TodoList.fromJson(responsJson))
           .toList();
-      return getList;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -91,10 +87,9 @@ class APIresponse {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       var responsOBJson = jsonDecode(response.body) as List;
-      getList = responsOBJson
+      return responsOBJson
           .map((responsJson) => TodoList.fromJson(responsJson))
           .toList();
-      return getList;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -114,10 +109,9 @@ class APIresponse {
       // If the server did return a 200 OK response,
       // then parse the JSON.
       var responsOBJson = jsonDecode(response.body) as List;
-      getList = responsOBJson
+      return responsOBJson
           .map((responsJson) => TodoList.fromJson(responsJson))
           .toList();
-      return getList;
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
